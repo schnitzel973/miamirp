@@ -4,165 +4,201 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Miami Life RP - Dashboard</title>
-<style>
-  /* Reset & Basis */
-  * {
-    box-sizing: border-box;
-    margin: 0; padding: 0;
-  }
-  html, body {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f9fafb;
-    color: #334155;
-  }
-  
-  body {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-  }
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --text: #1e293b;
+      --bg-light: #f9fafb;
+      --bg-sidebar: #fff;
+      --border: #e2e8f0;
+    }
 
-  /* Sidebar Links */
-  .sidebar {
-    width: 250px;
-    background: #fff;
-    border-right: 1px solid #e2e8f0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 1.5rem 1.5rem 1.5rem 1.5rem;
-    box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
-    overflow-y: auto;
-  }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  .sidebar h2 {
-    font-weight: 700;
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-    color: #1e293b;
-  }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-light);
+      color: var(--text);
+    }
 
-  .sidebar nav a {
-    display: block;
-    padding: 0.7rem 0;
-    color: #64748b;
-    text-decoration: none;
-    font-weight: 600;
-    border-radius: 8px;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  .sidebar nav a:hover {
-    background-color: #0ea5e9;
-    color: #fff;
-    padding-left: 0.7rem;
-  }
+    body {
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+    }
 
-  .logout-btn {
-    font-weight: 700;
-    color: #dc2626;
-    cursor: pointer;
-    text-align: center;
-    padding: 0.75rem;
-    border-radius: 9px;
-    transition: background-color 0.3s ease;
-    user-select: none;
-  }
-  .logout-btn:hover {
-    background-color: #fee2e2;
-  }
+    /* === Sidebar === */
+    .sidebar {
+      width: 250px;
+      min-width: 250px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.5rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      overflow-y: auto;
+    }
 
-  /* Hauptbereich */
-  .main {
-    flex-grow: 1;
-    background: #fff;
-    padding: 3rem 3rem 2rem 3rem;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
+    .sidebar h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+    }
 
-  .welcome {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 2rem;
-  }
+    .sidebar nav a {
+      display: block;
+      padding: 0.75rem 0;
+      color: #64748b;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
 
-  .button-box {
-    display: flex;
-    gap: 1.5rem;
-  }
+    .sidebar nav a:hover {
+      background-color: var(--primary);
+      color: #fff;
+      padding-left: 1rem;
+    }
 
-  .button-box button {
-    flex: 1;
-    background: transparent;
-    border: 2px solid #1e293b;
-    color: #1e293b;
-    padding: 1rem 0;
-    border-radius: 30px;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-  }
+    .logout-btn {
+      font-weight: bold;
+      color: #dc2626;
+      text-align: center;
+      padding: 0.75rem;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
 
-  .button-box button:hover {
-    background-color: #1e293b;
-    color: white;
-  }
+    .logout-btn:hover {
+      background-color: #fee2e2;
+    }
 
-  /* Rechte Sidebar */
-  .right {
-    width: 300px;
-    background: #fff;
-    border-left: 1px solid #e2e8f0;
-    padding: 1.5rem 1.5rem;
-    overflow-y: auto;
-    box-shadow: -3px 0 6px rgb(0 0 0 / 0.05);
-    display: flex;
-    flex-direction: column;
-  }
+    /* === Main Content === */
+    .main {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
 
-  .right h3 {
-    font-weight: 700;
-    font-size: 1.3rem;
-    color: #1e293b;
-    margin-bottom: 1.5rem;
-  }
+    .welcome {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
 
-  .user {
-    background-color: #f1f5f9;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.8rem;
-    border-radius: 12px;
-    font-weight: 600;
-    color: #334155;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.07);
-    transition: background-color 0.3s, color 0.3s;
-    cursor: default;
-  }
+    .clock {
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      color: #475569;
+    }
 
-  .user:hover {
-    background-color: #0ea5e9;
-    color: white;
-  }
+    .button-box {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
 
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 8px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: #0ea5e9;
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #f1f5f9;
-  }
-</style>
+    .button-box button {
+      flex: 1 1 45%;
+      padding: 1rem;
+      border: 2px solid var(--text);
+      background: transparent;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .button-box button:hover {
+      background-color: var(--text);
+      color: white;
+    }
+
+    /* === Right Sidebar === */
+    .right {
+      width: 300px;
+      min-width: 300px;
+      background: var(--bg-sidebar);
+      border-left: 1px solid var(--border);
+      padding: 1.5rem;
+      overflow-y: auto;
+      box-shadow: -3px 0 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .right h3 {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .user {
+      background-color: #f1f5f9;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.8rem;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: 0.3s;
+      cursor: default;
+    }
+
+    .user:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    /* Back to top */
+    #backToTop {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      z-index: 999;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar, .right {
+        display: none;
+      }
+      .main {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
 <body>
   <div class="sidebar">
     <div>
