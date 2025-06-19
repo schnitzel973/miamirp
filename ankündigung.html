@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miami Life RP - Informationen</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
+      color: #212529;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #ffffff;
+      padding: 1rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .info-center {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    .info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .toggle-form {
+      background-color: #007bff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .info-form {
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-form input, .info-form textarea, .info-form select {
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      color: #212529;
+    }
+
+    .info-form button {
+      background-color: #28a745;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .announcement {
+      background-color: #ffffff;
+      border-left: 4px solid #007bff;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      position: relative;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .announcement h3 {
+      margin-top: 0;
+      color: #007bff;
+    }
+
+    .announcement small {
+      color: #6c757d;
+    }
+
+    .announcement .actions {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .announcement .tag {
+      background-color: #e9ecef;
+      border-radius: 6px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.8rem;
+      display: inline-block;
+      margin-top: 0.3rem;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .announcement .attachment {
+      margin-top: 0.5rem;
+      display: block;
+      color: #007bff;
+      text-decoration: underline;
+    }
+
+    .back-button {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background-color: #007bff;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 1000;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #0056b3;
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Informationszentrum</h1>
+  </header>
+
+  <div class="info-center">
+    <div class="info-header">
+      <h2>Ankündigungen</h2>
+      <button class="toggle-form" onclick="toggleForm()">+ Neue Ankündigung</button>
+    </div>
+
+    <form class="info-form" id="infoForm">
+      <input type="text" id="title" placeholder="Titel" required>
+      <textarea id="message" rows="4" placeholder="Nachricht..." required></textarea>
+      <input type="file" id="attachment">
+      <select id="category" required>
+        <option value="">Kategorie wählen</option>
+        <option value="Server Team Wichtig">Server Team Wichtig</option>
+        <option value="Leitung Wichtig">Leitung Wichtig</option>
+      </select>
+      <button type="submit">Ankündigung erstellen</button>
+      <button id="backButton" class="back-button">← Zurück</button>
+    </form>
+
+    <div id="announcementsList"></div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJq62jfLK5wKz2oGwh8MZn_th-UkbHUW8",
+    authDomain: "berlin-life-rp.firebaseapp.com",
+    projectId: "berlin-life-rp",
+    storageBucket: "berlin-life-rp.appspot.com",
+    messagingSenderId: "987814178939",
+    appId: "1:987814178939:web:af2033cd9a7d13e30a9a94"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  const infoForm = document.getElementById("infoForm");
+  const announcementsList = document.getElementById("announcementsList");
+  let currentUser = null;
+
+  function toggleForm() {
+    infoForm.style.display = infoForm.style.display === "flex" ? "none" : "flex";
+    infoForm.style.flexDirection = "column";
+  }
+
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const title = document.getElementById("title").value;
+    const message = document.getElementById("message").value;
+    const file = document.getElementById("attachment").files[0];
+    const category = document.getElementById("category").value;
+    let fileUrl = "";
+
+    if (!currentUser || !currentUser.permissions?.permInfo) {
+      alert("Du hast keine Berechtigung zum Erstellen.");
+      return;
+    }
+
+    if (file) {
+      const storageRef = ref(storage, `attachments/${file.name}_${Date.now()}`);
+      await uploadBytes(storageRef, file);
+      fileUrl = await getDownloadURL(storageRef);
+    }
+
+    await addDoc(collection(db, "announcements"), {
+      title,
+      message,
+      category,
+      fileUrl,
+      createdBy: currentUser.username,
+      createdAt: new Date()
+    });
+
+    infoForm.reset();
+    loadAnnouncements();
+  }
+
+  async function checkPermissions() {
+    const usersSnapshot = await getDocs(collection(db, "users"));
+    const name = localStorage.getItem("username");
+
+    usersSnapshot.forEach(docSnap => {
+      const user = docSnap.data();
+      if (user.username === name) {
+        currentUser = { ...user, id: docSnap.id };
+      }
+    });
+
+    if (!currentUser) {
+      alert("Benutzer nicht gefunden.");
+      return;
+    }
+
+    if (currentUser.permissions?.permInfo) {
+      document.querySelector(".toggle-form").style.display = "inline-block";
+      infoForm.style.display = "flex";
+    } else {
+      document.querySelector(".toggle-form").style.display = "none";
+      infoForm.style.display = "none";
+    }
+
+    infoForm.addEventListener("submit", handleFormSubmit);
+  }
+
+  async function loadAnnouncements() {
+    announcementsList.innerHTML = "";
+    const snapshot = await getDocs(collection(db, "announcements"));
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = docSnap.id;
+
+      const div = document.createElement("div");
+      div.className = "announcement";
+
+      const title = document.createElement("h3");
+      title.textContent = data.title;
+
+      const category = document.createElement("div");
+      category.className = "tag";
+      category.textContent = data.category;
+
+      const msg = document.createElement("p");
+      msg.textContent = data.message;
+
+      const created = document.createElement("small");
+      created.textContent = `Erstellt von ${data.createdBy}`;
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      if (currentUser?.permissions?.permInfo) {
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Löschen";
+        delBtn.style.backgroundColor = "#dc3545";
+        delBtn.style.color = "white";
+        delBtn.onclick = async () => {
+          await deleteDoc(doc(db, "announcements", id));
+          loadAnnouncements();
+        };
+        actions.appendChild(delBtn);
+      }
+
+      if (currentUser?.username === data.createdBy) {
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Bearbeiten";
+        editBtn.style.backgroundColor = "#ffc107";
+        editBtn.style.color = "#000";
+        editBtn.onclick = () => {
+          document.getElementById("title").value = data.title;
+          document.getElementById("message").value = data.message;
+          document.getElementById("category").value = data.category;
+          toggleForm();
+
+          infoForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const newTitle = document.getElementById("title").value;
+            const newMessage = document.getElementById("message").value;
+            const newCategory = document.getElementById("category").value;
+
+            await updateDoc(doc(db, "announcements", id), {
+              title: newTitle,
+              message: newMessage,
+              category: newCategory
+            });
+
+            infoForm.reset();
+            loadAnnouncements();
+            toggleForm();
+            infoForm.onsubmit = handleFormSubmit;
+          };
+        };
+        actions.appendChild(editBtn);
+      }
+
+      if (data.fileUrl) {
+        const a = document.createElement("a");
+        a.href = data.fileUrl;
+        a.textContent = "Anhang herunterladen";
+        a.className = "attachment";
+        a.target = "_blank";
+        div.appendChild(a);
+      }
+
+      div.appendChild(title);
+      div.appendChild(category);
+      div.appendChild(msg);
+      div.appendChild(created);
+      div.appendChild(actions);
+
+      announcementsList.appendChild(div);
+    });
+  }
+
+  // Initialisierung
+  async function init() {
+    await checkPermissions();
+    loadAnnouncements();
+  }
+
+  init();
+
+  document.getElementById("backButton").addEventListener("click", () => {
+  window.location.href = "main.html";
+});
+
+</script>
+
+</body>
+</html>

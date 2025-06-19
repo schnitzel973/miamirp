@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Miami Life RP - Server Status</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .container {
+      display: flex;
+      height: 90vh;
+      gap: 20px;
+    }
+
+    .panel {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .status-box {
+      flex: 1;
+    }
+
+    .status-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    #rp-status-text {
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #f4f4f4;
+    }
+
+    .log-box {
+      flex: 2;
+      overflow-y: auto;
+    }
+
+    .log-box h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    .log-entry {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid #ccc;
+      background: #f7f7f7;
+      border-radius: 6px;
+    }
+
+    .log-start { border-color: green; color: green; }
+    .log-stop { border-color: red; color: red; }
+    .log-maintenance { border-color: orange; color: orange; }
+
+    .button-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .rp-button {
+      padding: 15px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 2px solid #000;
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .rp-button:hover {
+      background-color: #f0f0f0;
+    }
+
+#left {
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  text-decoration: none;
+  background-color: #f1f1f1;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  color: #333;
+  font-weight: bold;
+  transition: 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #ddd;
+  color: #000;
+}
+
+  </style>
+</head>
+<!-- Datei: index.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>RP Webhook Control</title>
+  <style>
+    /* ... CSS bleibt unverändert ... */
+  </style>
+</head>
+<body>
+
+<a href="main.html" class="back-button">⬅ Zurück</a>
+
+<div class="container">
+  <div class="panel status-box">
+    <div class="status-title">RP Status:</div>
+    <div id="rp-status-text">Noch kein Status gesetzt</div>
+  </div>
+
+  <div class="panel log-box">
+    <h2>RP Logs</h2>
+    <div id="log-entries"></div>
+  </div>
+
+  <div class="panel button-box">
+    <button class="rp-button" onclick="handleWebhook('start')">RP Start<br><small>Startet das RP</small></button>
+    <button class="rp-button" onclick="handleWebhook('stop')">RP Stop<br><small>Beendet das aktuelle RP</small></button>
+    <button class="rp-button" onclick="handleWebhook('active')">RP Aktiv<br><small>Das RP Läuft noch</small></button>
+    <button class="rp-button" onclick="handleWebhook('maintenance')">Wartungsarbeiten<br><small>Versetzte den Server in Wartungsarbeiten</small></button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ✅ Firebase-Konfiguration (mit korrektem storageBucket!)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJq62jfLK5wKz2oGwh8MZn_th-UkbHUW8",
+    authDomain: "berlin-life-rp.firebaseapp.com",
+    projectId: "berlin-life-rp",
+    storageBucket: "berlin-life-rp.appspot.com",
+    messagingSenderId: "503548712695",
+    appId: "1:503548712695:web:681bac84dce0f41e1f65f2",
+    measurementId: "G-5KNG8BNBMB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ✅ DEIN Webhook-Link:
+  const webhookURL = "https://discord.com/api/webhooks/1383820657728684154/Bsznd7ObIx6_2p5GtaWdVK2YB9FRnAvIu_3i0cS1YH0gKUJ5100vj8gRwvvSiUaDlNjD";
+  const roleID = "1385221727524622428";
+
+  const statusDisplay = document.getElementById("rp-status-text");
+  const logBox = document.getElementById("log-entries");
+
+  async function handleWebhook(type) {
+    const now = new Date();
+    const time = now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const date = now.toLocaleDateString("de-DE");
+    const timestamp = serverTimestamp();
+
+    let content = "";
+    let logText = "";
+    let statusText = "";
+    let cssClass = "";
+
+    switch (type) {
+      case "start":
+        content = `<@${1385221727524622428}> 
+**🟢 RP START**\n
+Der Server ist nun für sie geöffnet und wird von Stafflern betreut. 
+Staffler werden Verfügung stehen und ihre fragen beantworten.`;
+        logText = `🟢 RP gestartet um: ${time} - ${date}`;
+        statusText = `🟢 RP läuft seit: ${time} - ${date}`;
+        cssClass = "log-start";
+        break;
+      case "stop":
+        content = `<@${1385221727524622428}> **🔴 RP BEENDET**\n
+        Wir haben nun den Ingame Server gestoppt. 
+        Wir bitten euch das ihr eure RP Situation zu Ende spielt und dann den Server Verlässt. 
+        Unser Team wird bei Regelbrüchen nicht eingreifen und Modcalls werden nicht mehr behandelt.`;
+        logText = `🔴 RP gestoppt um: ${time} - ${date}`;
+        statusText = `🔴 RP beendet um: ${time} - ${date}`;
+        cssClass = "log-stop";
+        break;
+      case "active":
+        content = `<@&${1385221727524622428}> 📢 **RP läuft weiterhin!**\nBleibt bitte im RP-Modus.`;
+        logText = `📢 RP als aktiv markiert: ${time} - ${date}`;
+        cssClass = "log-entry";
+        break;
+      case "maintenance":
+        content = `<@&${1385221727524622428}> ⚠️ **Wartungsarbeiten aktiv**\nRP temporär unterbrochen.`;
+        logText = `⚠️ Wartung aktiviert um: ${time} - ${date}`;
+        statusText = `⚠️ Wartung aktiv seit: ${time} - ${date}`;
+        cssClass = "log-maintenance";
+        break;
+    }
+
+    // ✅ Discord Webhook senden
+    try {
+      await fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: content })
+      });
+    } catch (error) {
+      console.error("Webhook-Fehler:", error);
+    }
+
+    if (type !== "active") {
+      updateStatus(statusText);
+      await setDoc(doc(db, "rpStatus", "current"), {
+        status: statusText,
+        timestamp: timestamp
+      });
+    }
+
+    await addDoc(collection(db, "rpLogs"), {
+      event: type,
+      text: logText,
+      timestamp: timestamp
+    });
+
+    addLog(logText, cssClass);
+  }
+
+  function updateStatus(text) {
+    statusDisplay.textContent = text;
+    localStorage.setItem("rp-status", text);
+  }
+
+  function addLog(text, cssClass) {
+    const entry = document.createElement("div");
+    entry.className = `log-entry ${cssClass}`;
+    entry.textContent = text;
+    logBox.appendChild(entry);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+window.onload = async () => {
+  const savedStatus = localStorage.getItem("rp-status");
+  if (savedStatus) statusDisplay.textContent = savedStatus;
+
+  await loadLogsFromFirestore(); // ⬅ Logs aus Firestore laden
+};
+
+
+  // Buttons brauchen globale Zugriff
+  window.handleWebhook = handleWebhook;
+
+  // Neue Funktion: Logs beim Laden anzeigen
+import { query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+async function loadLogsFromFirestore() {
+  const logQuery = query(collection(db, "rpLogs"), orderBy("timestamp", "desc"), limit(50));
+  const querySnapshot = await getDocs(logQuery);
+
+  logBox.innerHTML = "";
+
+  querySnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const logText = data.text || "Kein Text";
+    const event = data.event || "";
+    let cssClass = "log-entry";
+
+    if (event === "start") cssClass += " log-start";
+    else if (event === "stop") cssClass += " log-stop";
+    else if (event === "maintenance") cssClass += " log-maintenance";
+
+    addLog(logText, cssClass);
+  });
+}
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Miami Life RP - Benutzerverwalten</title>
+  <style>
+    /* Reset & Basis */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9fafb;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 2rem;
+      align-items: center;
+    }
+    a.back-btn {
+      align-self: flex-start;
+      margin-bottom: 1.5rem;
+      background-color: #3b82f6;
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    a.back-btn:hover {
+      background-color: #2563eb;
+    }
+
+    main {
+      background: white;
+      width: 100%;
+      max-width: 960px;
+      border-radius: 10px;
+      padding: 2.5rem 3rem;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    h1 {
+      margin: 0 0 1rem 0;
+      font-weight: 700;
+      color: #1f2937;
+      user-select: none;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    label {
+      font-weight: 600;
+      color: #374151;
+      user-select: none;
+    }
+    input[type="text"],
+    input[type="password"],
+    select {
+      padding: 0.65rem 1rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1.5px solid #d1d5db;
+      transition: border-color 0.3s ease;
+      outline-offset: 2px;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+      border-color: #3b82f6;
+      outline: none;
+      box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 0.3rem;
+    }
+    .checkbox-group label {
+      font-weight: 500;
+      color: #4b5563;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      user-select: none;
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    button[type="submit"] {
+      width: fit-content;
+      background-color: #3b82f6;
+      border: none;
+      padding: 0.85rem 2.2rem;
+      border-radius: 8px;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      align-self: flex-start;
+      margin-top: 0.5rem;
+      user-select: none;
+    }
+    button[type="submit"]:hover {
+      background-color: #2563eb;
+    }
+
+    #feedback {
+      color: green;
+      font-weight: 600;
+      min-height: 1.4rem;
+      user-select: none;
+      margin-top: 0.3rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+    thead {
+      background-color: #f3f4f6;
+      user-select: none;
+    }
+    th, td {
+      padding: 1rem 1.5rem;
+      text-align: left;
+      font-size: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      color: #374151;
+    }
+    th {
+      font-weight: 700;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    td.permissions {
+      font-size: 1.25rem;
+      white-space: nowrap;
+    }
+
+    .actions button {
+      background-color: #e5e7eb;
+      border: none;
+      padding: 0.4rem 1rem;
+      margin-right: 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #374151;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .actions button:hover {
+      background-color: #d1d5db;
+    }
+    .actions button:last-child {
+      margin-right: 0;
+    }
+
+    @media (max-width: 620px) {
+      main {
+        padding: 1.5rem 1.8rem;
+      }
+      button[type="submit"] {
+        width: 100%;
+        text-align: center;
+      }
+      .checkbox-group {
+        flex-direction: column;
+        gap: 0.7rem;
+      }
+      table, th, td {
+        font-size: 0.9rem;
+      }
+      td.permissions {
+        font-size: 1rem;
+      }
+      .actions button {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="main.html" class="back-btn" aria-label="Zurück zur Hauptseite">← Zurück</a>
+
+  <main>
+    <h1>Benutzer hinzufügen</h1>
+<form id="userForm" autocomplete="off" spellcheck="false" novalidate>
+  <label for="username">Benutzername</label>
+  <input type="text" id="username" required maxlength="50" autocomplete="off" />
+
+  <label for="password">Passwort</label>
+  <input type="password" id="password" required autocomplete="new-password" />
+
+  <label for="rank">Rang</label>
+  <select id="rank" required>
+    <option value="- Test Account">- Test Account</option>
+    <option value="Moderation">Moderation</option>
+    <option value="Administration">Administration</option>
+    <option value="Staff Supervisor">Staff Supervisor</option>
+    <option value="Verwaltungsebene">Verwaltungsebene</option>
+    <option value="Managmentsebene">Managmentsebene</option>
+    <option value="Führungsebene">Führungsebene</option>
+    <option value="Leitungsebene">Leitungsebene</option>
+    <option value="Server Leitung">Server Leitung</option>
+    
+    
+  </select>
+
+  <label>Avatar:</label>
+  <input type="file" name="avatar" accept="image/*">
+
+  <label>Berechtigungen</label>
+  <div class="checkbox-group">
+    <label><input type="checkbox" id="permInfo" /> Team Informationen schreiben</label>
+    <label><input type="checkbox" id="permLogs" /> Teamlogs</label>
+    <label><input type="checkbox" id="permReadLogs" /> Logs einsehen</label>
+    <label><input type="checkbox" id="permManageUsers" /> Benutzer verwalten</label>
+  </div>
+
+  <button type="submit">Benutzer erstellen</button>
+  <div id="feedback" role="alert" aria-live="polite"></div>
+</form>
+
+
+    <h1>Alle Benutzer</h1>
+    <table aria-label="Liste aller Benutzer">
+      <thead>
+        <tr>
+            <th>Avatar</th>
+          <th>Benutzername</th>
+          <th>Rang</th>
+          <th>Aktiv</th>
+          <th>Berechtigungen</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody id="userTable"></tbody>
+    </table>
+  </main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // Firebase Konfiguration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJq62jfLK5wKz2oGwh8MZn_th-UkbHUW8",
+    authDomain: "berlin-life-rp.firebaseapp.com",
+    projectId: "berlin-life-rp",
+    storageBucket: "berlin-life-rp.appspot.com",
+    messagingSenderId: "987814178939",
+    appId: "1:987814178939:web:af2033cd9a7d13e30a9a94",
+    measurementId: "G-VHV0SD8JY8"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function checkPermissionAccess() {
+    const username = localStorage.getItem("username");
+    if (!username) {
+      console.warn("Nicht eingeloggt – leite weiter.");
+      window.location.href = "main.html";
+      return;
+    }
+
+    try {
+      const snapshot = await getDocs(collection(db, "users"));
+      let foundUser = false;
+
+      snapshot.forEach((doc) => {
+        const user = doc.data();
+        if (user.username === username) {
+          foundUser = true;
+          if (user.permissions?.permManageUsers !== true) {
+            alert("Zugriff verweigert – keine Berechtigung.");
+            window.location.href = "main.html";
+          }
+        }
+      });
+
+      if (!foundUser) {
+        alert("Benutzer nicht gefunden.");
+        window.location.href = "main.html";
+      }
+
+    } catch (error) {
+      console.error("Fehler bei der Berechtigungsprüfung:", error);
+      window.location.href = "main.html";
+    }
+  }
+
+  checkPermissionAccess();
+</script>
+
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJq62jfLK5wKz2oGwh8MZn_th-UkbHUW8",
+    authDomain: "berlin-life-rp.firebaseapp.com",
+    projectId: "berlin-life-rp",
+    storageBucket: "berlin-life-rp.appspot.com",
+    messagingSenderId: "987814178939",
+    appId: "1:987814178939:web:af2033cd9a7d13e30a9a94",
+    measurementId: "G-VHV0SD8JY8"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  getAnalytics(app);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  const userForm = document.getElementById('userForm');
+  const userTableBody = document.getElementById('userTable');
+  const feedback = document.getElementById('feedback');
+
+  function permissionsToEmoji(perms) {
+    const map = {
+      permInfo: "📢",
+      permLogs: "📝",
+      permReadLogs: "🔍",
+      permManageUsers: "⚙️"
+    };
+    return Object.entries(map)
+      .filter(([key]) => perms[key])
+      .map(([, emoji]) => emoji)
+      .join(" ");
+  }
+
+  async function loadUsers() {
+    userTableBody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#888;'>Lade Benutzer...</td></tr>";
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      if (querySnapshot.empty) {
+        userTableBody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#888;'>Keine Benutzer vorhanden</td></tr>";
+        return;
+      }
+      userTableBody.innerHTML = "";
+      querySnapshot.forEach(docSnap => {
+        const user = docSnap.data();
+        const row = document.createElement('tr');
+
+        // Avatar
+        const avatarTd = document.createElement('td');
+        if (user.avatarUrl) {
+          const img = document.createElement('img');
+          img.src = user.avatarUrl;
+          img.alt = "Avatar";
+          img.style.width = "32px";
+          img.style.height = "32px";
+          img.style.borderRadius = "50%";
+          avatarTd.appendChild(img);
+        } else {
+          avatarTd.textContent = "—";
+        }
+        row.appendChild(avatarTd);
+
+        // Username
+        const usernameTd = document.createElement('td');
+        usernameTd.textContent = user.username;
+        row.appendChild(usernameTd);
+
+        // Rang
+        const rankTd = document.createElement('td');
+        rankTd.textContent = user.rank;
+        row.appendChild(rankTd);
+
+        // Aktiv
+        const activeTd = document.createElement('td');
+        activeTd.textContent = user.active ? "Ja" : "Nein";
+        row.appendChild(activeTd);
+
+        // Berechtigungen
+        const permsTd = document.createElement('td');
+        permsTd.classList.add('permissions');
+        permsTd.textContent = permissionsToEmoji(user.permissions || {});
+        row.appendChild(permsTd);
+
+        // Aktionen
+        const actionsTd = document.createElement('td');
+        actionsTd.classList.add('actions');
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.textContent = user.active ? "Deaktivieren" : "Aktivieren";
+        toggleBtn.title = user.active ? "Benutzer deaktivieren" : "Benutzer aktivieren";
+        toggleBtn.addEventListener('click', async () => {
+          toggleBtn.disabled = true;
+          try {
+            await updateDoc(doc(db, "users", docSnap.id), {
+              active: !user.active
+            });
+            feedback.textContent = `Benutzer ${user.username} wurde ${user.active ? "deaktiviert" : "aktiviert"}.`;
+            loadUsers();
+          } catch (e) {
+            feedback.textContent = "Fehler beim Ändern des Status.";
+          }
+          toggleBtn.disabled = false;
+        });
+        actionsTd.appendChild(toggleBtn);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = "Löschen";
+        deleteBtn.title = "Benutzer löschen";
+        deleteBtn.style.backgroundColor = "#ef4444";
+        deleteBtn.style.color = "white";
+        deleteBtn.addEventListener('click', async () => {
+          if (confirm(`Benutzer ${user.username} wirklich löschen?`)) {
+            deleteBtn.disabled = true;
+            try {
+              await deleteDoc(doc(db, "users", docSnap.id));
+              feedback.textContent = `Benutzer ${user.username} wurde gelöscht.`;
+              loadUsers();
+            } catch (e) {
+              feedback.textContent = "Fehler beim Löschen des Benutzers.";
+            }
+            deleteBtn.disabled = false;
+          }
+        });
+        actionsTd.appendChild(deleteBtn);
+
+        row.appendChild(actionsTd);
+        userTableBody.appendChild(row);
+      });
+    } catch (error) {
+      userTableBody.innerHTML = `<tr><td colspan='6' style='color:#ef4444;text-align:center;'>Fehler beim Laden der Benutzer.</td></tr>`;
+      console.error(error);
+    }
+  }
+
+  userForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    feedback.textContent = "";
+    feedback.style.color = "red";
+
+    const username = userForm.username.value.trim();
+    const password = userForm.password.value;
+    const rank = userForm.rank.value;
+    const avatarFile = userForm.avatar.files[0];
+    const permissions = {
+      permInfo: userForm.permInfo.checked,
+      permLogs: userForm.permLogs.checked,
+      permReadLogs: userForm.permReadLogs.checked,
+      permManageUsers: userForm.permManageUsers.checked
+    };
+
+    if (!username || !password || !rank) {
+      feedback.textContent = "Bitte alle Pflichtfelder ausfüllen.";
+      return;
+    }
+
+    let avatarUrl = "";
+    if (avatarFile) {
+      try {
+        const storageRef = ref(storage, `avatars/${username}_${Date.now()}`);
+        await uploadBytes(storageRef, avatarFile);
+        avatarUrl = await getDownloadURL(storageRef);
+      } catch (uploadError) {
+        console.error("Avatar-Upload fehlgeschlagen:", uploadError);
+        feedback.textContent = "Fehler beim Hochladen des Avatars.";
+        return;
+      }
+    }
+
+    try {
+      await addDoc(collection(db, "users"), {
+        username,
+        password,
+        rank,
+        permissions,
+        active: true,
+        createdAt: new Date(),
+        avatarUrl: avatarUrl || null
+      });
+      feedback.style.color = "green";
+      feedback.textContent = `Benutzer ${username} erfolgreich erstellt!`;
+      userForm.reset();
+      loadUsers();
+    } catch (error) {
+      console.error("Fehler beim Erstellen des Benutzers:", error);
+      feedback.textContent = "Fehler beim Erstellen des Benutzers.";
+    }
+  });
+
+  loadUsers();
+</script>
+
+</body>
+</html>

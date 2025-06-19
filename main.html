@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Miami Life RP - Dashboard</title>
+<style>
+  /* Reset & Basis */
+  * {
+    box-sizing: border-box;
+    margin: 0; padding: 0;
+  }
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafb;
+    color: #334155;
+  }
+  
+  body {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Sidebar Links */
+  .sidebar {
+    width: 250px;
+    background: #fff;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem 1.5rem 1.5rem 1.5rem;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
+    overflow-y: auto;
+  }
+
+  .sidebar h2 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    color: #1e293b;
+  }
+
+  .sidebar nav a {
+    display: block;
+    padding: 0.7rem 0;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  .sidebar nav a:hover {
+    background-color: #0ea5e9;
+    color: #fff;
+    padding-left: 0.7rem;
+  }
+
+  .logout-btn {
+    font-weight: 700;
+    color: #dc2626;
+    cursor: pointer;
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 9px;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+  .logout-btn:hover {
+    background-color: #fee2e2;
+  }
+
+  /* Hauptbereich */
+  .main {
+    flex-grow: 1;
+    background: #fff;
+    padding: 3rem 3rem 2rem 3rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .welcome {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2rem;
+  }
+
+  .button-box {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .button-box button {
+    flex: 1;
+    background: transparent;
+    border: 2px solid #1e293b;
+    color: #1e293b;
+    padding: 1rem 0;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  .button-box button:hover {
+    background-color: #1e293b;
+    color: white;
+  }
+
+  /* Rechte Sidebar */
+  .right {
+    width: 300px;
+    background: #fff;
+    border-left: 1px solid #e2e8f0;
+    padding: 1.5rem 1.5rem;
+    overflow-y: auto;
+    box-shadow: -3px 0 6px rgb(0 0 0 / 0.05);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .right h3 {
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+  }
+
+  .user {
+    background-color: #f1f5f9;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.8rem;
+    border-radius: 12px;
+    font-weight: 600;
+    color: #334155;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.07);
+    transition: background-color 0.3s, color 0.3s;
+    cursor: default;
+  }
+
+  .user:hover {
+    background-color: #0ea5e9;
+    color: white;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: #0ea5e9;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+</style>
+<body>
+  <div class="sidebar">
+    <div>
+      <h2>Miami Life RP Dashboard</h2>
+      <nav>
+        <a href="#">Übersicht</a>
+        <a href="ankündigung.html">Team Information</a>
+        <a href="Webhook.html">RP Status</a>
+        <a href="#">Team Logs</a>
+        <a href="chat.html">Florida Chat</a>
+        <a href="https://docs.google.com/document/d/1yU-VCUEFb85ufHbslR0vQVIVCV5pHlYkFVqteL0dwo8/edit?usp=sharing">Staff Regelwerk</a>
+        <a href="https://melonly.xyz/dashboard?join=IETJVE">Melonly Link</a>
+        <a href="#">Usernames</a>
+        <a href="#">Datein</a>
+        <a href="team-logs.html">Benutzerverwalten</a>
+        <a href="#">Website Logs</a>
+        <a href="#">Einstellungen</a>
+      </nav>
+    </div>
+    <div class="logout-btn" onclick="logout()">Logout</div>
+  </div>
+
+  <div class="main">
+    <div class="welcome" id="welcome">
+      Willkommen Zurück, <span id="username">...</span>
+    </div>
+    <div class="button-box">
+      <button>-</button>
+      <button>-</button>
+    </div>
+  </div>
+
+  <div class="right">
+    <h3>Miami Staff Team</h3>
+    <div id="staffList">Lade Teammitglieder...</div>
+  </div>
+
+  <!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJq62jfLK5wKz2oGwh8MZn_th-UkbHUW8",
+    authDomain: "berlin-life-rp.firebaseapp.com",
+    projectId: "berlin-life-rp",
+    storageBucket: "berlin-life-rp.firebasestorage.app",
+    messagingSenderId: "503548712695",
+    appId: "1:503548712695:web:681bac84dce0f41e1f65f2",
+    measurementId: "G-5KNG8BNBMB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const usernameEl = document.getElementById("username");
+  const staffListEl = document.getElementById("staffList");
+
+  // Prüfe sessionStorage statt Firebase Auth
+  const user = sessionStorage.getItem("user");
+  if (!user) {
+    window.location.href = "login.html";
+  } else {
+    const userObj = JSON.parse(user);
+    usernameEl.textContent = userObj.username || userObj.email || "Unbekannt";
+    loadStaffList();
+  }
+
+  async function loadStaffList() {
+    const querySnapshot = await getDocs(collection(db, "users"));
+    staffListEl.innerHTML = "";
+
+    const users = [];
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      users.push(data);
+    });
+
+    if(users.length === 0) {
+      staffListEl.textContent = "Keine Teammitglieder gefunden.";
+      return;
+    }
+
+    // Sortierung nach Rang: Leitung, Admin+, Admin, Mod, Supporter, sonst Unranked
+    const rankOrder = ["Server Leitung", "Leitungsebene", "Führungsebene", "Managmentsebene", "Verwaltungsebene", "Staff Supervisor", "Administration", "Moderation", "- Test Account"];
+    users.sort((a, b) => {
+      const rankA = rankOrder.indexOf(a.rank) === -1 ? rankOrder.length : rankOrder.indexOf(a.rank);
+      const rankB = rankOrder.indexOf(b.rank) === -1 ? rankOrder.length : rankOrder.indexOf(b.rank);
+      return rankA - rankB;
+    });
+
+    users.forEach((data) => {
+      const el = document.createElement("div");
+      el.className = "user";
+      el.textContent = `${data.username || "?"} | ${data.rank || "Unranked"}`;
+      staffListEl.appendChild(el);
+    });
+  }
+
+  window.logout = () => {
+    sessionStorage.clear();
+    window.location.href = "login.html";
+  };
+</script>
+</body>
+</html>

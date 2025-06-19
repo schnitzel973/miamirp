@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Miami Life RP - Chat</title>
+
+  <!-- Dein CSS -->
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9fafb;
+      height: 100vh;
+      display: flex;
+    }
+    .chat-container {
+      display: flex;
+      flex: 1;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: scale(0.98);}
+      to {opacity: 1; transform: scale(1);}
+    }
+    .sidebar {
+      width: 280px;
+      background: #f3f4f6;
+      padding: 16px;
+      border-right: 1px solid #e5e7eb;
+    }
+    .sidebar h3 {
+      margin-bottom: 16px;
+      font-size: 18px;
+      color: #111827;
+    }
+    #userSearch {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+    }
+    #userList div {
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+    }
+    #userList div:hover {
+      background-color: #e5e7eb;
+    }
+    .chat-window {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #f9fafb;
+    }
+    .chat-header {
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+    }
+    .chat-header a {
+      color: #3b82f6;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    #chatBox {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .msg {
+  margin: 8px;
+  padding: 10px 15px;
+  border-radius: 20px;
+  max-width: 60%;
+  position: relative;
+  display: inline-block;
+  animation: fadeIn 0.3s ease;
+}
+
+.sent {
+  background-color: #cce5ff;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.received {
+  background-color: #f1f1f1;
+  align-self: flex-start;
+  margin-right: auto;
+}
+
+.timestamp {
+  font-size: 10px;
+  color: gray;
+  margin-top: 5px;
+  text-align: right;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+    form {
+      display: flex;
+      padding: 16px;
+      border-top: 1px solid #e5e7eb;
+      background: #ffffff;
+    }
+    form input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      margin-right: 8px;
+      font-size: 14px;
+    }
+    form button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    form button:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chat-container">
+    <div class="sidebar">
+      <h3>Florida RP Chat</h3>
+      <input type="text" id="userSearch" placeholder="Suche nach einer Person...">
+      <div id="userList">
+        <!-- Dynamisch gefüllt -->
+      </div>
+    </div>
+    <div class="chat-window">
+      <div class="chat-header">
+        <span id="chatHeader">Wähle einen Nutzer</span>
+        <a href="main.html">Zurück zur Übersicht</a>
+      </div>
+      <div id="chatBox"></div>
+      <form id="messageForm">
+        <input type="text" id="messageInput" placeholder="Gib deine Nachricht hier ein..." required>
+        <button type="submit">Senden</button>
+      </form>
+    </div>
+  </div>
+  <!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, orderBy, addDoc, serverTimestamp, onSnapshot, doc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJq62jfLK5wKz2oGwh8MZn_th-UkbHUW8",
+    authDomain: "berlin-life-rp.firebaseapp.com",
+    projectId: "berlin-life-rp",
+    storageBucket: "berlin-life-rp.appspot.com",
+    messagingSenderId: "503548712695",
+    appId: "1:503548712695:web:681bac84dce0f41e1f65f2",
+    measurementId: "G-5KNG8BNBMB"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const userListEl = document.getElementById('userList');
+  const chatBox = document.getElementById('chatBox');
+  const chatHeader = document.getElementById('chatHeader');
+  const form = document.getElementById('messageForm');
+  const messageInput = document.getElementById('messageInput');
+  const searchInput = document.getElementById('userSearch');
+
+  const currentUser = localStorage.getItem("username");
+  if (!currentUser) {
+    alert("Nicht eingeloggt!");
+    window.location.href = "login.html";
+  }
+
+  let selectedUser = null;
+
+  async function loadUsers() {
+    const usersSnapshot = await getDocs(collection(db, "users"));
+    const pinned = JSON.parse(localStorage.getItem("pinnedChats") || "[]");
+
+    const users = [];
+    usersSnapshot.forEach(doc => {
+      const user = doc.data();
+      if (user.username !== currentUser) {
+        users.push(user.username);
+      }
+    });
+
+    userListEl.innerHTML = '';
+
+    const ordered = [...pinned, ...users.filter(u => !pinned.includes(u))];
+    for (const username of ordered) {
+      const userDiv = document.createElement('div');
+      userDiv.textContent = username;
+      userDiv.style.position = 'relative';
+      userDiv.style.display = 'flex';
+      userDiv.style.justifyContent = 'space-between';
+      userDiv.style.alignItems = 'center';
+
+      const chatId = [currentUser, username].sort().join('_');
+      const chatRef = collection(db, 'chats', chatId, 'messages');
+      const viewDocRef = doc(db, 'chatViews', `${currentUser}_${chatId}`);
+      const messagesSnapshot = await getDocs(chatRef);
+      const viewSnap = await getDoc(viewDocRef);
+      const lastRead = viewSnap.exists() ? viewSnap.data().lastRead?.toMillis?.() || 0 : 0;
+
+      let hasNew = false;
+      messagesSnapshot.forEach(m => {
+        const msg = m.data();
+        if (msg.timestamp?.toMillis() > lastRead && msg.sender !== currentUser) hasNew = true;
+      });
+
+      if (hasNew) {
+        const dot = document.createElement('span');
+        dot.style.cssText = "display:inline-block;width:10px;height:10px;border-radius:50%;background:green;margin-left:6px;";
+        userDiv.appendChild(dot);
+      }
+
+      const menu = document.createElement('div');
+      menu.textContent = '⋮';
+      menu.style.cssText = 'cursor:pointer;padding-left:10px;color:#6b7280;';
+      menu.onclick = (e) => {
+        e.stopPropagation();
+        showChatMenu(username);
+      };
+      userDiv.appendChild(menu);
+
+      userDiv.onclick = () => openChat(username);
+      userListEl.appendChild(userDiv);
+    }
+  }
+
+  async function openChat(otherUser) {
+    selectedUser = otherUser;
+    chatHeader.textContent = otherUser;
+    const chatId = [currentUser, otherUser].sort().join('_');
+    await setDoc(doc(db, 'chatViews', `${currentUser}_${chatId}`), { lastRead: new Date() });
+    loadChatMessages(currentUser, otherUser);
+  }
+
+  function formatTimestamp(timestamp) {
+    if (!timestamp) return "";
+    const date = timestamp.toDate();
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  function showChatMenu(user) {
+    const pinned = JSON.parse(localStorage.getItem("pinnedChats") || "[]");
+    const isPinned = pinned.includes(user);
+    const menu = document.createElement("div");
+    menu.style.cssText = "position:fixed;right:20px;top:20px;background:#fff;border:1px solid #ccc;padding:10px;z-index:1000;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);";
+    menu.innerHTML = `
+      <div style="cursor:pointer;padding:4px;" onclick="deleteChat('${user}')">❌ Chat löschen</div>
+      <div style="cursor:pointer;padding:4px;" onclick="togglePinChat('${user}')">${isPinned ? "📌 Entpinnen" : "📌 Anheften"}</div>
+      <div style="cursor:pointer;padding:4px;color:#888;" onclick="this.parentElement.remove()">Abbrechen</div>
+    `;
+    document.body.appendChild(menu);
+  }
+
+  window.deleteChat = async function(user) {
+    const chatId = [currentUser, user].sort().join('_');
+    const chatRef = collection(db, 'chats', chatId, 'messages');
+    const snapshot = await getDocs(chatRef);
+    snapshot.forEach(async docSnap => {
+      await deleteDoc(doc(db, 'chats', chatId, 'messages', docSnap.id));
+    });
+    alert("Chat gelöscht.");
+    document.querySelectorAll("div").forEach(el => el.remove());
+    loadUsers();
+  };
+
+  window.togglePinChat = function(user) {
+    let pinned = JSON.parse(localStorage.getItem("pinnedChats") || "[]");
+    if (pinned.includes(user)) {
+      pinned = pinned.filter(u => u !== user);
+    } else {
+      if (pinned.length >= 5) {
+        alert("Maximal 5 Chats anheften erlaubt!");
+        return;
+      }
+      pinned.push(user);
+    }
+    localStorage.setItem("pinnedChats", JSON.stringify(pinned));
+    location.reload();
+  };
+
+  function loadChatMessages(user1, user2) {
+    const chatId = [user1, user2].sort().join('_');
+    const chatRef = collection(db, 'chats', chatId, 'messages');
+    const q = query(chatRef, orderBy('timestamp', 'asc'));
+
+    onSnapshot(q, async (snapshot) => {
+      const messages = [];
+      snapshot.forEach(doc => {
+        messages.push({ id: doc.id, ...doc.data() });
+      });
+
+      if (messages.length > 100) {
+        const toRemove = messages.slice(0, messages.length - 100);
+        toRemove.forEach(async msg => {
+          await deleteDoc(doc(db, 'chats', chatId, 'messages', msg.id));
+        });
+      }
+
+      chatBox.innerHTML = '';
+      messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.classList.add('msg');
+        div.classList.add(msg.sender === currentUser ? 'sent' : 'received');
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = msg.text;
+        if (msg.text.includes('@' + currentUser)) {
+          div.style.background = '#fff4cc';
+          div.style.borderLeft = '4px solid orange';
+        }
+
+        const timeSpan = document.createElement('div');
+        timeSpan.className = 'timestamp';
+        timeSpan.textContent = formatTimestamp(msg.timestamp);
+
+        div.appendChild(textSpan);
+        div.appendChild(timeSpan);
+        chatBox.appendChild(div);
+      });
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+
+    const text = messageInput.value.trim();
+    if (!text) return;
+
+    const chatId = [currentUser, selectedUser].sort().join('_');
+    const chatRef = collection(db, 'chats', chatId, 'messages');
+    await addDoc(chatRef, {
+      sender: currentUser,
+      text: text,
+      timestamp: serverTimestamp()
+    });
+
+    messageInput.value = '';
+  });
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase();
+    const users = userListEl.querySelectorAll('div');
+    users.forEach(user => {
+      user.style.display = user.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+  });
+
+  loadUsers();
+</script>
+
+<style>
+  .new-msg-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: green;
+    margin-left: 6px;
+  }
+  .chat-menu {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 1000;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+</style>
+</body>
+</html>

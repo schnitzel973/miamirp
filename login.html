@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Miami Life RP - Login</title>
+  <style>
+    :root {
+      --primary: #1e293b;
+      --accent: #0ea5e9;
+      --bg: #f8f7f5f3;
+      --input-bg: #e2e8f0;
+      --text: #1e293b;
+      --radius: 12px;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 1s ease;
+    }
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 1000px;
+    }
+    .left-panel {
+      flex: 1;
+      padding: 2rem 3rem 2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .left-panel img {
+      width: 250px;
+      margin-bottom: 1.5rem;
+      margin-left: 1rem;
+    }
+    .slogan {
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #334155;
+      white-space: nowrap;
+      margin-left: 1rem;
+    }
+    .login-container {
+      flex: 1;
+      background: #fff;
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      opacity: 0;
+      animation: slideIn 0.6s ease-out forwards;
+    }
+    .login-container h2 {
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: var(--radius);
+      background-color: var(--input-bg);
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--accent);
+      color: #f8f7f5;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0284c7;
+    }
+    #login-message {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      min-height: 1.5rem;
+    }
+    #login-message.error {
+      color: #dc2626;
+    }
+    #login-message.success {
+      color: green;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .left-panel {
+        align-items: center;
+        text-align: center;
+        padding: 1rem;
+      }
+      .left-panel img,
+      .slogan {
+        margin-left: 0;
+      }
+      .slogan {
+        white-space: normal;
+      }
+    }
+
+    .rechte-link {
+  margin-top: 1rem;
+}
+.rechte-link a {
+  font-size: 0.9rem;
+  color: #0284c7;
+  text-decoration: none;
+}
+.rechte-link a:hover {
+  text-decoration: underline;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <img src="C:\Users\juliu\Downloads\2.png" alt="Logo" />
+      <div class="slogan">Mehr als RP. Das ist Miami Life...</div>
+    </div>
+    <div class="login-container">
+      <h2>Miami Life Login</h2>
+      <form id="login-form">
+        <input type="text" id="username" placeholder="Nutzername" required />
+        <input type="password" id="password" placeholder="Passwort" required />
+        <button type="submit">Einloggen</button>
+        <div id="login-message"></div>
+
+      <div class="rechte-link">
+  <a href="rechte.html">© Urheberrecht- Impressum</a>
+</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDJq62jfLK5wKz2oGwh8MZn_th-UkbHUW8",
+      authDomain: "berlin-life-rp.firebaseapp.com",
+      projectId: "berlin-life-rp",
+      storageBucket: "berlin-life-rp.appspot.com",
+      messagingSenderId: "503548712695",
+      appId: "1:503548712695:web:681bac84dce0f41e1f65f2",
+      measurementId: "G-5KNG8BNBMB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('login-form');
+    const message = document.getElementById('login-message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      message.textContent = "";
+      message.className = "";
+
+      const email = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        message.textContent = "Bitte alle Felder ausfüllen.";
+        message.className = "error";
+        return;
+      }
+
+      try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("username", "==", email));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          message.textContent = "Benutzer nicht gefunden.";
+          message.className = "error";
+          return;
+        }
+
+        let userDoc = null;
+        querySnapshot.forEach(doc => {
+          userDoc = doc;
+        });
+
+        const userData = userDoc.data();
+
+        if (userData.password === password) {
+          if (!userData.active) {
+            message.textContent = "Benutzer ist deaktiviert.";
+            message.className = "error";
+            return;
+          }
+          message.textContent = "Login erfolgreich. Weiterleitung...";
+          message.className = "success";
+
+          sessionStorage.setItem('user', JSON.stringify({
+            id: userDoc.id,
+            username: userData.username,
+            rank: userData.rank,
+            permissions: userData.permissions
+          }));
+
+          // Optional zusätzlich in localStorage speichern, damit es überall verfügbar ist
+          localStorage.setItem('username', userData.username);
+
+
+          setTimeout(() => {
+            window.location.href = "main.html";
+          }, 1000);
+        } else {
+          message.textContent = "Falsches Passwort.";
+          message.className = "error";
+        }
+      } catch (error) {
+        console.error(error);
+        message.textContent = "Fehler beim Login. Bitte versuche es später erneut.";
+        message.className = "error";
+      }
+    });
+  </script>
+</body>
+</html>
