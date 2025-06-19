@@ -54,7 +54,9 @@
       margin-bottom: 2rem;
     }
 
-    .info-form input, .info-form textarea, .info-form select {
+    .info-form input,
+    .info-form textarea,
+    .info-form select {
       padding: 0.5rem;
       border-radius: 6px;
       border: 1px solid #ccc;
@@ -62,7 +64,7 @@
       color: #212529;
     }
 
-    .info-form button {
+    .info-form button[type="submit"] {
       background-color: #28a745;
       border: none;
       padding: 0.5rem 1rem;
@@ -70,6 +72,7 @@
       color: #fff;
       cursor: pointer;
       font-weight: bold;
+      width: fit-content;
     }
 
     .announcement {
@@ -117,7 +120,7 @@
       text-decoration: underline;
     }
 
-.back-button {
+      .back-button {
   position: absolute;
   bottom: 20px;
   left: 20px;
@@ -135,10 +138,11 @@
   background-color: #ddd;
   color: #000;
 }
-
   </style>
 </head>
 <body>
+  <button id="backButton" class="back-button">← Zurück</button>
+
   <header>
     <h1>Informationszentrum</h1>
   </header>
@@ -146,7 +150,7 @@
   <div class="info-center">
     <div class="info-header">
       <h2>Ankündigungen</h2>
-      <button class="toggle-form" onclick="toggleForm()">+ Neue Ankündigung</button>
+      <button class="toggle-form">+ Neue Ankündigung</button>
     </div>
 
     <form class="info-form" id="infoForm">
@@ -159,7 +163,6 @@
         <option value="Leitung Wichtig">Leitung Wichtig</option>
       </select>
       <button type="submit">Ankündigung erstellen</button>
-      <button id="backButton" class="back-button">← Zurück</button>
     </form>
 
     <div id="announcementsList"></div>
@@ -182,47 +185,21 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const storage = getStorage(app);
-  const infoForm = document.getElementById("infoForm");
-  const announcementsList = document.getElementById("announcementsList");
   let currentUser = null;
 
-  function toggleForm() {
-    infoForm.style.display = infoForm.style.display === "flex" ? "none" : "flex";
-    infoForm.style.flexDirection = "column";
-  }
+  const infoForm = document.getElementById("infoForm");
+  const announcementsList = document.getElementById("announcementsList");
+  const toggleButton = document.querySelector(".toggle-form");
 
-  async function handleFormSubmit(e) {
-    e.preventDefault();
-
-    const title = document.getElementById("title").value;
-    const message = document.getElementById("message").value;
-    const file = document.getElementById("attachment").files[0];
-    const category = document.getElementById("category").value;
-    let fileUrl = "";
-
-    if (!currentUser || !currentUser.permissions?.permInfo) {
-      alert("Du hast keine Berechtigung zum Erstellen.");
-      return;
+  // Toggle Form Funktion direkt als EventListener
+  toggleButton.addEventListener("click", () => {
+    if (infoForm.style.display === "flex") {
+      infoForm.style.display = "none";
+    } else {
+      infoForm.style.display = "flex";
+      infoForm.style.flexDirection = "column";
     }
-
-    if (file) {
-      const storageRef = ref(storage, `attachments/${file.name}_${Date.now()}`);
-      await uploadBytes(storageRef, file);
-      fileUrl = await getDownloadURL(storageRef);
-    }
-
-    await addDoc(collection(db, "announcements"), {
-      title,
-      message,
-      category,
-      fileUrl,
-      createdBy: currentUser.username,
-      createdAt: new Date()
-    });
-
-    infoForm.reset();
-    loadAnnouncements();
-  }
+  });
 
   async function checkPermissions() {
     const usersSnapshot = await getDocs(collection(db, "users"));
@@ -241,14 +218,40 @@
     }
 
     if (currentUser.permissions?.permInfo) {
-      document.querySelector(".toggle-form").style.display = "inline-block";
-      infoForm.style.display = "flex";
+      toggleButton.style.display = "inline-block";
     } else {
-      document.querySelector(".toggle-form").style.display = "none";
+      toggleButton.style.display = "none";
       infoForm.style.display = "none";
     }
+  }
 
-    infoForm.addEventListener("submit", handleFormSubmit);
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const title = document.getElementById("title").value;
+    const message = document.getElementById("message").value;
+    const file = document.getElementById("attachment").files[0];
+    const category = document.getElementById("category").value;
+    let fileUrl = "";
+
+    if (file) {
+      const storageRef = ref(storage, `attachments/${file.name}_${Date.now()}`);
+      await uploadBytes(storageRef, file);
+      fileUrl = await getDownloadURL(storageRef);
+    }
+
+    await addDoc(collection(db, "announcements"), {
+      title,
+      message,
+      category,
+      fileUrl,
+      createdBy: currentUser.username,
+      createdAt: new Date()
+    });
+
+    infoForm.reset();
+    infoForm.style.display = "none";
+    loadAnnouncements();
   }
 
   async function loadAnnouncements() {
@@ -299,7 +302,8 @@
           document.getElementById("title").value = data.title;
           document.getElementById("message").value = data.message;
           document.getElementById("category").value = data.category;
-          toggleForm();
+          infoForm.style.display = "flex";
+          infoForm.style.flexDirection = "column";
 
           infoForm.onsubmit = async (e) => {
             e.preventDefault();
@@ -314,8 +318,8 @@
             });
 
             infoForm.reset();
+            infoForm.style.display = "none";
             loadAnnouncements();
-            toggleForm();
             infoForm.onsubmit = handleFormSubmit;
           };
         };
@@ -342,18 +346,15 @@
   }
 
   // Initialisierung
-  async function init() {
-    await checkPermissions();
-    loadAnnouncements();
-  }
+  checkPermissions().then(loadAnnouncements);
 
-  init();
+  // Formular-Submit
+  infoForm.addEventListener("submit", handleFormSubmit);
 
-  document.getElementById("back-Button").addEventListener("click", () => {
-  window.location.href = "main.html";
-});
-
+  // Back Button
+  document.getElementById("backButton").addEventListener("click", () => {
+    window.location.href = "main.html";
+  });
 </script>
-
 </body>
 </html>
